@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Niveau {
+  id       String   @id @default(cuid())
+  libelle  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  classes  Classe[]
+  filieres Filiere[]
+
+  @@map("niveaux")
+}
+
+model Filiere {
+  id       String   @id @default(cuid())
+  libelle  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  niveauId String
+  niveau   Niveau @relation(fields: [niveauId], references: [id], onDelete: Cascade)
+  classes  Classe[]
+
+  @@map("filieres")
+}
+
+model Classe {
+  id       String   @id @default(cuid())
+  code     String   @unique
+  libelle  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  niveauId  String
+  niveau    Niveau  @relation(fields: [niveauId], references: [id], onDelete: Cascade)
+  filiereId String
+  filiere   Filiere @relation(fields: [filiereId], references: [id], onDelete: Cascade)
+  etudiants Etudiant[]
+
+  @@map("classes")
+}
+
+model Etudiant {
+  id             String    @id @default(cuid())
+  matricule      String    @unique
+  nom            String
+  prenom         String
+  dateNaissance  DateTime
+  telephone      String?
+  adresse        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  classeId String
+  classe   Classe @relation(fields: [classeId], references: [id], onDelete: Cascade)
+
+  @@map("etudiants")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  USER
+} 
